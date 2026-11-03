@@ -100,7 +100,7 @@ select,.listhead select{font:inherit;font-size:12px;background:var(--sheet);colo
 .price{font-family:var(--mono);font-size:13px;font-weight:500}
 .pill{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:2px 7px;border-radius:999px;margin-top:3px}
 .pill.LIBRE{background:var(--free-soft);color:var(--free)}
-.pill.RESERVADA,.pill.VENDIDA,.pill.BLOQUEADA{background:var(--paper);color:var(--ink-3);border:1px solid var(--rule)}
+.pill.RESERVADA,.pill.VENDIDA,.pill.BLOQUEADA,.pill.NO-DISPONIBLE{background:var(--paper);color:var(--ink-3);border:1px solid var(--rule)}
 .sunmini{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
 .back{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ink-2);cursor:pointer;padding:0;font-size:13px}
 .fhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:12px}
@@ -216,9 +216,9 @@ section.block h3{font-family:var(--display);font-stretch:112%;font-size:15px;fon
     <canvas id="gl" aria-label="Maqueta 3D del edificio"></canvas>
     <div class="flatview" id="flat" hidden><svg id="flatSvg" role="img" aria-label="Plano"></svg></div>
     <div class="scrim"></div>
-    <div class="brand"><h1>LUBENS</h1><div class="sub">Portales 9 a 16</div><p>140 viviendas · Valladolid</p></div>
+    <div class="brand"><h1>LUBENS</h1><div class="sub">Portales 9 a 16</div><p>A la venta: portales 9 a 12 · 70 viviendas disponibles · Valladolid</p></div>
     <button class="tally" id="tally" title="Ver solo las libres"><span class="dot"></span><b id="tallyN">140</b><span>libres de 140</span></button>
-    <div class="legend"><span><i style="background:#22A85E"></i>Libre</span><span><i style="background:#ECEBE6"></i>Reservada / vendida</span><span><i style="background:#E8962E"></i>Seleccionada</span></div>
+    <div class="legend"><span><i style="background:#22A85E"></i>A la venta</span><span><i style="background:#ECEBE6"></i>No disponible / reservada</span><span><i style="background:#E8962E"></i>Seleccionada</span></div>
     <div class="tools">
       <div class="seg" id="modeSeg" role="group" aria-label="Vista"><button data-m="3d" aria-pressed="true">3D</button><button data-m="plano" aria-pressed="false">Plano</button><button data-m="alzado" aria-pressed="false">Alzados</button></div>
       <div class="seg" id="showSeg" role="group" aria-label="Color"><button data-s="libres" aria-pressed="true">Ver libres</button><button data-s="fachada" aria-pressed="false">Solo fachada</button></div>
@@ -257,8 +257,9 @@ section.block h3{font-family:var(--display);font-stretch:112%;font-size:15px;fon
 const D = JSON.parse(document.getElementById('data').textContent);
 const FLOORS = [1,2,3,4,5], FLOORS3D = [0,1,2,3,4,5];
 const FNAME = {0:'Baja',1:'1ª',2:'2ª',3:'3ª',4:'4ª',5:'5ª'};
-const STATES = ['disponible','reservada','vendida','bloqueada'];
-const SLABEL = {disponible:'LIBRE',reservada:'RESERVADA',vendida:'VENDIDA',bloqueada:'BLOQUEADA'};
+const STATES = ['disponible','reservada','vendida','bloqueada','no disponible'];
+const SLABEL = {disponible:'LIBRE',reservada:'RESERVADA',vendida:'VENDIDA',bloqueada:'BLOQUEADA','no disponible':'NO DISPONIBLE'};
+const sClass = s => (SLABEL[s] || s || '').replace(/\s+/g, '-');
 const LAT = 41.62, LON = -4.73, H = 2.95;
 const fmt = (n,d=2) => Number(n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
 const eur = v => v==null?'—':Number(v).toLocaleString('es-ES')+' €';
@@ -279,7 +280,13 @@ const PORTALS = ['09','10','11','12','13','14','15','16'];
 
 // ---------- shared state ----------
 let EST = {}, NORTH = 73, db = null, canWrite = false, downloads = null;
-const st = id => (EST[id] && STATES.includes(EST[id].s)) ? EST[id].s : 'disponible';
+const SALE_PORTALS = new Set(['09','10','11','12','9']);
+const st = id => {
+  if (EST[id] && STATES.includes(EST[id].s)) return EST[id].s;
+  const u = byId[id];
+  if (u && !SALE_PORTALS.has(String(u.portal)) && !SALE_PORTALS.has(String(+u.portal))) return 'no disponible';
+  return 'disponible';
+};
 const isFree = u => st(u.id)==='disponible';
 const priceOf = u => (EST[u.id] && EST[u.id].precio) ? EST[u.id].precio : u.list;
 
@@ -363,7 +370,7 @@ function cellsHtml(){
 }
 function rowHtml(u){
   const p = priceOf(u);
-  return `<li><button class="row" data-id="${u.id}"><span class="code">${u.id}</span><span class="meta">${u.tipo} · ${fmt(u.util)} m² · ${u.oriOff?u.oriOff.toLowerCase():''}<small>Portal ${+u.portal} · ${FNAME[u.floor]} planta · ${u.pos?u.pos.toLowerCase():''}</small></span><span class="right"><span class="price">${p?eur(p):'A consultar'}</span><br><span class="pill ${SLABEL[st(u.id)]}">${SLABEL[st(u.id)].toLowerCase()}</span></span></button></li>`;
+  return `<li><button class="row" data-id="${u.id}"><span class="code">${u.id}</span><span class="meta">${u.tipo} · ${fmt(u.util)} m² · ${u.oriOff?u.oriOff.toLowerCase():''}<small>Portal ${+u.portal} · ${FNAME[u.floor]} planta · ${u.pos?u.pos.toLowerCase():''}</small></span><span class="right"><span class="price">${p?eur(p):'A consultar'}</span><br><span class="pill ${sClass(st(u.id))}">${SLABEL[st(u.id)].toLowerCase()}</span></span></button></li>`;
 }
 function sortList(list){
   const k = F.sort;
@@ -376,7 +383,7 @@ function renderHome(){
   <div class="pad"><div class="eyebrow">Encuentra tu vivienda</div><h2>Elige en el edificio o filtra aquí</h2>
     <div class="eyebrow" style="margin-top:16px">Disponibilidad por planta</div>
     <div class="avwrap">${cellsHtml()}</div>
-    <div class="avlegend"><span><i style="background:#22A85E"></i>Libre</span><span><i style="background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule)"></i>Reservada o vendida</span><span>Pulsa una casilla para ver la vivienda</span></div>
+    <div class="avlegend"><span><i style="background:#22A85E"></i>A la venta</span><span><i style="background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule)"></i>No disponible / reservada</span><span>Pulsa una casilla para ver la vivienda</span></div>
   </div>
   <div class="pad" style="padding-top:0"><div class="find2">
     <div class="f2head"><div><div class="eyebrow">Asistente de búsqueda</div><b>¿Cuál es tu vivienda?</b><p>Cuéntanos qué necesitas y ordenamos las ${UNITS.filter(isFree).length} viviendas libres por afinidad.</p></div><button class="f2go" id="quizGo">Empezar</button></div>
@@ -414,7 +421,7 @@ function renderFicha(u){
   $('panel').innerHTML = `<div class="pad">
     <button class="back" id="back"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>Todas las viviendas</button>
     <div class="fhead"><div><div class="eyebrow">Portal ${+u.portal} · ${FNAME[u.floor]} planta · letra ${u.letter}</div><div class="fcode" style="margin-top:8px">${u.id}</div></div>
-      <div class="fprice"><div class="big">${p?eur(p):'A consultar'}</div>${p?`<small>${fmt(p/u.util,0)} €/m² útil</small>`:'<small>Precio pendiente de lista</small>'}<span class="pill ${SLABEL[s]}">${SLABEL[s].toLowerCase()}</span></div></div>
+      <div class="fprice"><div class="big">${p?eur(p):'A consultar'}</div>${p?`<small>${fmt(p/u.util,0)} €/m² útil</small>`:'<small>Precio pendiente de lista</small>'}<span class="pill ${sClass(s)}">${SLABEL[s].toLowerCase()}</span></div></div>
     <div class="fsub">${u.pos||''}${u.oriOff?` · orientación ${u.oriOff.toLowerCase()}` + (solarTxt(u) ? ` (fachadas al ${solarTxt(u)})` : ''):''}${u.opcional?' · admite distribución opcional al mismo precio':''}</div>
     <div class="actions"><button class="gbtn" id="cmpAdd" aria-pressed="${compare.includes(u.id)}">${compare.includes(u.id)?'En el comparador':'Añadir al comparador'}</button><button class="gbtn" id="copyLink">Copiar enlace</button><button class="gbtn" id="seeFacade">Ver en fachada</button><span class="copied" id="copied" hidden>Enlace copiado</span></div>
     <dl class="facts"><div><dt>Dormitorios</dt><dd>${u.dorm}</dd></div><div><dt>Baños</dt><dd>${u.banos}</dd></div><div><dt>Útil vivienda</dt><dd>${fmt(u.util)}</dd></div><div><dt>Terraza</dt><dd>${u.ext?fmt(u.ext):'—'}</dd></div></dl>
@@ -589,7 +596,7 @@ function renderSup(){
   const COLS=[['id','Vivienda'],['planta','Planta'],['portal','Portal'],['tipo','Tipo'],['util','Útil m²',1],['ext','Terraza m²',1],['cons','Constr. m²',1],['banos','Baños',1],['ori','Orientación'],['solar','Orientación solar'],['estado','Estado'],['lista','Lista €',1],['eurm2','€/m² útil',1]];
   const rs = supRows().sort((a,b)=>{const x=a[sortKey],y=b[sortKey]; return (x>y?1:x<y?-1:0)*sortDir;});
   const t=$('supTable'); t.tHead.innerHTML='<tr>'+COLS.map(([k,l,n])=>`<th class="${n?'n':''}" data-k="${k}">${l}${sortKey===k?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>';
-  t.tBodies[0].innerHTML = rs.map(r=>`<tr data-id="${r.id}" style="cursor:pointer"><td><b>${r.id}</b></td><td>${FNAME[r.planta]}</td><td>${r.portal}</td><td>${r.tipo}</td><td class="n">${fmt(r.util)}</td><td class="n">${r.ext?fmt(r.ext):'—'}</td><td class="n">${fmt(r.cons)}</td><td class="n">${r.banos}</td><td>${r.ori}</td><td><span class="pill ${SLABEL[r.estado]}">${SLABEL[r.estado].toLowerCase()}</span></td><td class="n">${r.lista?r.lista.toLocaleString('es-ES'):'—'}</td><td class="n">${r.eurm2?r.eurm2.toLocaleString('es-ES'):'—'}</td></tr>`).join('');
+  t.tBodies[0].innerHTML = rs.map(r=>`<tr data-id="${r.id}" style="cursor:pointer"><td><b>${r.id}</b></td><td>${FNAME[r.planta]}</td><td>${r.portal}</td><td>${r.tipo}</td><td class="n">${fmt(r.util)}</td><td class="n">${r.ext?fmt(r.ext):'—'}</td><td class="n">${fmt(r.cons)}</td><td class="n">${r.banos}</td><td>${r.ori}</td><td><span class="pill ${sClass(r.estado)}">${SLABEL[r.estado].toLowerCase()}</span></td><td class="n">${r.lista?r.lista.toLocaleString('es-ES'):'—'}</td><td class="n">${r.eurm2?r.eurm2.toLocaleString('es-ES'):'—'}</td></tr>`).join('');
   const sum=k=>rs.reduce((a,r)=>a+(r[k]||0),0);
   t.tFoot.innerHTML=`<tr><td colspan="4">${rs.length} viviendas</td><td class="n">${fmt(sum('util'))}</td><td class="n">${fmt(sum('ext'))}</td><td class="n">${fmt(sum('cons'))}</td><td class="n">${sum('banos')}</td><td colspan="2"></td><td class="n">${sum('lista').toLocaleString('es-ES')}</td><td></td></tr>`;
   const g={}; UNITS.forEach(u=>(g[u.tipo]=g[u.tipo]||[]).push(u));
@@ -836,7 +843,7 @@ function init3D(){
     const ctxBlock=(x0,z0,x1,z1,h)=>{const w=x1-x0,d=z1-z0;const mk=(len)=>{const t=winT.clone();t.needsUpdate=true;t.repeat.set(len/12,h/12);return M({map:t,roughness:.9});};
       const mm=[mk(d),mk(d),M({color:0xDAD8D2}),M({color:0xDAD8D2}),mk(w),mk(w)];const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mm);o.position.set((x0+x1)/2,h/2,(z0+z1)/2);o.castShadow=o.receiveShadow=true;grp.add(o);
       const r=new THREE.Mesh(new THREE.BoxGeometry(w+.4,.4,d+.4),M({color:0xE4E2DC}));r.position.set((x0+x1)/2,h+.2,(z0+z1)/2);grp.add(r);};
-    ctxBlock(-70,-42,-22,-26,15); ctxBlock(-16,-42,30,-26,18); ctxBlock(36,-40,64,-26,12); ctxBlock(92,-44,128,-26,15); ctxBlock(94,-8,110,38,12); ctxBlock(94,50,110,90,15);
+    ctxBlock(-70,-42,-22,-26,15); ctxBlock(92,-44,128,-26,15); ctxBlock(94,-8,110,38,12); ctxBlock(94,50,110,90,15);
     ctxBlock(-60,111,-8,127,15); ctxBlock(-2,111,40,126,18); ctxBlock(46,111,66,128,12); ctxBlock(92,111,130,128,15);
     for(let x=-40;x<66;x+=7){tree(x,-20.5,.95+rnd()*.3);} for(let x=-40;x<66;x+=7){tree(x,104.6,.95+rnd()*.3);} for(let z=-12;z<100;z+=7){tree(87,z,.95+rnd()*.3);}
     // ---- courtyard garden: pool with stone deck, paths, hedges, trees, garden lamps, benches ----
@@ -972,9 +979,9 @@ function update3D(){
   three.roof.visible = cut===6;
   for(const m of three.unitMeshes){
     const u=byId[m.userData.id], sel=u.id===selId, fr=isFree(u), dim=filtersOn()&&!passes(u), isCut=(u.floor===cut && cut<6);
-    m.material.color.setHex(sel?0xE8962E:0x22A85E);
-    m.material.opacity = isCut ? (sel ? .35 : .14) : sel ? .55 : dim ? .12 : .32;
-    m.visible = sel || (show==='libres' && fr);
+    m.material.color.setHex(sel?0xE8962E:fr?0x22A85E:0xB5B3AA);
+    m.material.opacity = isCut ? (sel ? .35 : .14) : sel ? .55 : dim ? .12 : fr ? .32 : .18;
+    m.visible = sel || (show==='libres' ? fr : true);
     m.scale.y = isCut ? 0.06 : 1;
   }
   // floating tags
