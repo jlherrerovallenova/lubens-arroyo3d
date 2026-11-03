@@ -320,6 +320,21 @@ function sunOnUnit(u,y,mo,d){
 const hhmm = h => { const H=Math.floor(h+1e-6), M=Math.round((h-H)*60); return `${String(H).padStart(2,'0')}:${String(M===60?0:M).padStart(2,'0')}`; };
 const hoursTxt = h => { const H=Math.floor(h), M=Math.round((h-H)*60); return M?`${H} h ${String(M).padStart(2,'0')}`:`${H} h`; };
 const winterSun = u => sunOnUnit(u,2026,11,21).hours;
+const solarDirs = u => {
+  const dirs = {};
+  for(const f of (u.fac||[])){
+    if(f[1] >= 1.5){
+      const d = compass(azOf(f[0]));
+      dirs[d] = (dirs[d] || 0) + f[1];
+    }
+  }
+  return Object.keys(dirs).sort((a,b)=>dirs[b]-dirs[a]);
+};
+const solarTxt = u => {
+  const ds = solarDirs(u);
+  if(!ds.length) return '';
+  return ds.length <= 2 ? ds.join(' y ') : ds.slice(0,-1).join(', ') + ' y ' + ds[ds.length-1];
+};
 
 // ---------- view state ----------
 let mode = '3d', show = 'libres', level = 0, selId = null, curElev = 'A2';
@@ -401,14 +416,14 @@ function renderFicha(u){
     <button class="back" id="back"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>Todas las viviendas</button>
     <div class="fhead"><div><div class="eyebrow">Portal ${+u.portal} · ${FNAME[u.floor]} planta · letra ${u.letter}</div><div class="fcode" style="margin-top:8px">${u.id}</div></div>
       <div class="fprice"><div class="big">${p?eur(p):'A consultar'}</div>${p?`<small>${fmt(p/u.util,0)} €/m² útil</small>`:'<small>Precio pendiente de lista</small>'}<span class="pill ${SLABEL[s]}">${SLABEL[s].toLowerCase()}</span></div></div>
-    <div class="fsub">${u.pos||''}${u.oriOff?` · orientación ${u.oriOff.toLowerCase()}`:''}${u.opcional?' · admite distribución opcional al mismo precio':''}</div>
+    <div class="fsub">${u.pos||''}${u.oriOff?` · orientación ${u.oriOff.toLowerCase()}` + (solarTxt(u) ? ` (fachadas al ${solarTxt(u)})` : ''):''}${u.opcional?' · admite distribución opcional al mismo precio':''}</div>
     <div class="actions"><button class="gbtn" id="cmpAdd" aria-pressed="${compare.includes(u.id)}">${compare.includes(u.id)?'En el comparador':'Añadir al comparador'}</button><button class="gbtn" id="copyLink">Copiar enlace</button><button class="gbtn" id="seeFacade">Ver en fachada</button><span class="copied" id="copied" hidden>Enlace copiado</span></div>
     <dl class="facts"><div><dt>Dormitorios</dt><dd>${u.dorm}</dd></div><div><dt>Baños</dt><dd>${u.banos}</dd></div><div><dt>Útil vivienda</dt><dd>${fmt(u.util)}</dd></div><div><dt>Terraza</dt><dd>${u.ext?fmt(u.ext):'—'}</dd></div></dl>
     ${(()=>{ const pl=plansFor(u); const tabs=[]; if(pl.own) tabs.push(['own','Plano comercial']); tabs.push(['svg','Plano con superficies']); if(pl.opt) tabs.push(['opt','Distribución opcional']);
       return `<div class="actions" id="ptabs" style="margin-top:18px">${tabs.map(([k,l],i)=>`<button class="gbtn" data-pt="${k}" aria-pressed="${i===0}">${l}</button>`).join('')}</div><div class="sheet" style="margin-top:10px"><button class="pimg" id="openPlan" aria-label="Ampliar plano"></button><div class="cart"><span id="pcart"></span><span>Pulsa para ampliar</span></div></div>${!pl.own&&pl.twin?`<p class="note">Distribución simétrica a la vivienda ${esc(u.twin.replace('P','').replace(/^0/,''))} de los portales 9 a 12.</p>`:''}`; })()}
     <table class="rooms"><tbody>${intRooms.filter(r=>r.a>=0.5).map(r=>`<tr><td>${esc(r.n)}</td><td>${fmt(r.a)} m²</td></tr>`).join('')}</tbody>
       <tfoot><tr><td>Total útil vivienda${u.consEst?'':' (ficha comercial)'}</td><td>${fmt(u.util)} m²</td></tr>${u.ext?`<tr><td style="font-weight:400">Terrazas y tendederos</td><td style="font-weight:400">${fmt(u.ext)} m²</td></tr>`:''}<tr><td style="font-weight:400">Construida${u.consEst?' (estimada)':''}</td><td style="font-weight:400">${fmt(u.cons)} m²</td></tr></tfoot></table>
-    <section class="block"><div class="eyebrow">Soleamiento</div><h3>Cuánto sol entra por sus ventanas</h3>
+    <section class="block"><div class="eyebrow">Soleamiento</div><h3>Cuánto sol entra por sus ventanas</h3>${solarTxt(u)?`<div class="note" style="margin:2px 0 10px;font-weight:500;color:var(--ink-2)">Orientación solar en fachada: <b style="color:var(--ink);text-transform:capitalize">${solarTxt(u)}</b></div>`: ''}
       <dl class="sunstats">${[[now.label,sNow],['21 diciembre',sW],['21 junio',sS]].map(([l,r])=>`<div><dt>${l}</dt><dd>${hoursTxt(r.hours)}<small>${r.from!=null?`de ${hhmm(r.from)} a ${hhmm(r.to)}`:'sin sol directo'}</small></dd></div>`).join('')}</dl>
       <div class="heat">${heatSvg(sNow.mask)}</div>
       <p class="note">Horas en que el sol incide en alguna fachada de la vivienda, sin contar sombras de edificios vecinos. Mueve la fecha y la hora en la barra del sol para ver las sombras reales del edificio en la maqueta.</p></section>
@@ -473,7 +488,7 @@ function salesSvg(u, compact){
     const ty = vy+vh-tb+30;
     s += `<line x1="${vx+40}" x2="${vx+vw-40}" y1="${ty}" y2="${ty}" stroke="${C.ink}" stroke-width="5"/>`;
     s += `<text x="${vx+40}" y="${ty+105}" font-size="${Math.min(100,vw/14)}" font-weight="800" fill="${C.ink}" style="font-stretch:125%">${u.id}</text>`;
-    s += `<text x="${vx+40}" y="${ty+180}" font-size="${Math.min(46,vw/30)}" fill="${C.muted}" font-family="Instrument Sans, Arial, sans-serif">${u.tipo} · ${u.banos} baños · ${fmt(u.util)} m² útiles${u.ext?` + ${fmt(u.ext)} m² terraza`:''}</text>`;
+    s += `<text x="${vx+40}" y="${ty+180}" font-size="${Math.min(46,vw/30)}" fill="${C.muted}" font-family="Instrument Sans, Arial, sans-serif">${u.tipo} · ${u.banos} baños · ${fmt(u.util)} m² útiles${u.ext?` + ${fmt(u.ext)} m² terraza`:''}${solarTxt(u)?` · Sol: ${solarTxt(u)}`:''}</text>`;
     s += `<text x="${vx+40}" y="${ty+245}" font-size="${Math.min(32,vw/44)}" fill="${C.muted}" font-family="Instrument Sans, Arial, sans-serif">Plano orientativo, sujeto a modificaciones técnicas durante la obra. Mobiliario no incluido.</text>`;
     s += `<g transform="translate(${vx+vw-100} ${ty+120}) rotate(${-NORTH})"><circle r="62" fill="#fff" stroke="${C.ink}" stroke-width="5"/><path d="M0 -52L18 30L0 15L-18 30Z" fill="${C.ink}"/></g><text x="${vx+vw-100}" y="${ty+228}" text-anchor="middle" font-size="40" font-family="IBM Plex Mono, monospace" fill="${C.ink}">N</text>`;
   }
@@ -565,14 +580,14 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ b.closest('
 document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.ov,.pv').forEach(o=>o.hidden=true); });
 function renderCmp(){
   const us = compare.map(id=>byId[id]);
-  const rows = [['Precio',u=>priceOf(u),'min',v=>v?eur(v):'A consultar'],['€/m² útil',u=>priceOf(u)?priceOf(u)/u.util:null,'min',v=>v?fmt(v,0)+' €':'—'],['Útil',u=>u.util,'max',v=>fmt(v)+' m²'],['Terraza',u=>u.ext,'max',v=>v?fmt(v)+' m²':'—'],['Dormitorios',u=>u.dorm,'max',v=>v],['Baños',u=>u.banos,'max',v=>v],['Planta',u=>u.floor,'max',v=>FNAME[v]],['Sol 21-dic',u=>winterSun(u),'max',v=>hoursTxt(v)],['Orientación',u=>u.oriOff||'—',null,v=>v],['Posición',u=>u.pos||'—',null,v=>v]];
+  const rows = [['Precio',u=>priceOf(u),'min',v=>v?eur(v):'A consultar'],['€/m² útil',u=>priceOf(u)?priceOf(u)/u.util:null,'min',v=>v?fmt(v,0)+' €':'—'],['Útil',u=>u.util,'max',v=>fmt(v)+' m²'],['Terraza',u=>u.ext,'max',v=>v?fmt(v)+' m²':'—'],['Dormitorios',u=>u.dorm,'max',v=>v],['Baños',u=>u.banos,'max',v=>v],['Planta',u=>u.floor,'max',v=>FNAME[v]],['Sol 21-dic',u=>winterSun(u),'max',v=>hoursTxt(v)],['Orientación comercial',u=>u.oriOff||'—',null,v=>v],['Orientación solar',u=>solarTxt(u)||'—',null,v=>v],['Posición',u=>u.pos||'—',null,v=>v]];
   $('cmpGrid').innerHTML = us.map(u=>`<div class="cmpcol"><div class="eyebrow">Portal ${+u.portal} · ${FNAME[u.floor]} planta</div><div class="fcode">${u.id}</div><div class="plan">${salesSvg(u,true)}</div><table class="cmpt">${rows.map(([l,f,best,fm])=>{ const vals=us.map(f).filter(v=>typeof v==='number'); const v=f(u); const b = best && typeof v==='number' && vals.length>1 && v===(best==='min'?Math.min(...vals):Math.max(...vals)); return `<tr><td>${l}</td><td class="${b?'best':''}">${fm(v)}</td></tr>`; }).join('')}</table><button class="x" data-rm="${u.id}">Quitar</button></div>`).join('');
   $('cmpGrid').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ compare=compare.filter(x=>x!==b.dataset.rm); if(compare.length<2) $('ovCmp').hidden=true; else renderCmp(); renderPanel(); });
 }
 let sortKey='id', sortDir=1;
-function supRows(){ return UNITS.map(u=>({u,id:u.id,planta:u.floor,portal:+u.portal,tipo:u.tipo,util:u.util,ext:u.ext,cons:u.cons,banos:u.banos,ori:u.oriOff?`${u.oriOff} · ${u.pos}`:'',estado:st(u.id),lista:u.list,eurm2:priceOf(u)?Math.round(priceOf(u)/u.util):null})); }
+function supRows(){ return UNITS.map(u=>({u,id:u.id,planta:u.floor,portal:+u.portal,tipo:u.tipo,util:u.util,ext:u.ext,cons:u.cons,banos:u.banos,ori:u.oriOff?`${u.oriOff} · ${u.pos}`:'',solar:solarTxt(u),estado:st(u.id),lista:u.list,eurm2:priceOf(u)?Math.round(priceOf(u)/u.util):null})); }
 function renderSup(){
-  const COLS=[['id','Vivienda'],['planta','Planta'],['portal','Portal'],['tipo','Tipo'],['util','Útil m²',1],['ext','Terraza m²',1],['cons','Constr. m²',1],['banos','Baños',1],['ori','Orientación'],['estado','Estado'],['lista','Lista €',1],['eurm2','€/m² útil',1]];
+  const COLS=[['id','Vivienda'],['planta','Planta'],['portal','Portal'],['tipo','Tipo'],['util','Útil m²',1],['ext','Terraza m²',1],['cons','Constr. m²',1],['banos','Baños',1],['ori','Orientación'],['solar','Orientación solar'],['estado','Estado'],['lista','Lista €',1],['eurm2','€/m² útil',1]];
   const rs = supRows().sort((a,b)=>{const x=a[sortKey],y=b[sortKey]; return (x>y?1:x<y?-1:0)*sortDir;});
   const t=$('supTable'); t.tHead.innerHTML='<tr>'+COLS.map(([k,l,n])=>`<th class="${n?'n':''}" data-k="${k}">${l}${sortKey===k?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>';
   t.tBodies[0].innerHTML = rs.map(r=>`<tr data-id="${r.id}" style="cursor:pointer"><td><b>${r.id}</b></td><td>${FNAME[r.planta]}</td><td>${r.portal}</td><td>${r.tipo}</td><td class="n">${fmt(r.util)}</td><td class="n">${r.ext?fmt(r.ext):'—'}</td><td class="n">${fmt(r.cons)}</td><td class="n">${r.banos}</td><td>${r.ori}</td><td><span class="pill ${SLABEL[r.estado]}">${SLABEL[r.estado].toLowerCase()}</span></td><td class="n">${r.lista?r.lista.toLocaleString('es-ES'):'—'}</td><td class="n">${r.eurm2?r.eurm2.toLocaleString('es-ES'):'—'}</td></tr>`).join('');
@@ -582,7 +597,7 @@ function renderSup(){
   $('mix').innerHTML = Object.entries(g).sort().map(([k,us])=>{ const ut=us.map(u=>u.util); return `<div class="card"><div class="eyebrow">${k}</div><b>${us.length} viviendas</b><div class="note" style="margin-top:2px">${fmt(Math.min(...ut),1)}–${fmt(Math.max(...ut),1)} m² útiles · ${us.filter(isFree).length} libres</div></div>`; }).join('') + `<div class="card"><div class="eyebrow">Anejos del bloque</div><b>152 plazas</b><div class="note" style="margin-top:2px">21 plazas de moto · 141 trasteros bajo cubierta · piscina comunitaria</div></div>`;
 }
 $('supTable').addEventListener('click', e=>{ const th=e.target.closest('th'); if(th){ const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=1;} renderSup(); return; } const tr=e.target.closest('tbody tr'); if(tr){ $('ovSup').hidden=true; select(tr.dataset.id); } });
-$('csvBtn').onclick = () => { const rs=supRows(); const head=['Vivienda','Planta','Portal','Tipo','Util_m2','Terraza_m2','Construida_m2','Fuente_superficies','Dormitorios','Banos','Orientacion','Estado','Precio_lista_EUR']; const lines=[head.join(';')].concat(rs.map(r=>[r.id,FNAME[r.planta],r.portal,r.tipo,fmt(r.util),fmt(r.ext),fmt(r.cons),r.u.areaSrc,r.u.dorm,r.banos,r.ori,r.estado,r.lista||''].join(';'))); save('cuadro-superficies-portales-9-16.csv','﻿'+lines.join('\n')); };
+$('csvBtn').onclick = () => { const rs=supRows(); const head=['Vivienda','Planta','Portal','Tipo','Util_m2','Terraza_m2','Construida_m2','Fuente_superficies','Dormitorios','Banos','Orientacion','Orientacion_solar','Estado','Precio_lista_EUR']; const lines=[head.join(';')].concat(rs.map(r=>[r.id,FNAME[r.planta],r.portal,r.tipo,fmt(r.util),fmt(r.ext),fmt(r.cons),r.u.areaSrc,r.u.dorm,r.banos,r.ori,r.solar,r.estado,r.lista||''].join(';'))); save('cuadro-superficies-portales-9-16.csv','﻿'+lines.join('\n')); };
 async function save(filename, data){ if(!downloads) return; try { await downloads.save({filename, data}); } catch(e){} }
 $('dlSvg').onclick = () => { if(lastPlanImg){ fetch(lastPlanImg).then(r=>r.blob()).then(b=>save(lastPlanName+'.jpg',b)); } else save(lastPlanName+'.svg', lastPlanSvg); };
 $('dlPng').onclick = () => { if(lastPlanImg){ fetch(lastPlanImg).then(r=>r.blob()).then(b=>save(lastPlanName+'.jpg',b)); return; } const img=new Image(); img.onload=()=>{ const vb=lastPlanSvg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number); const W=2400,Hh=Math.round(W*vb[3]/vb[2]); const c=document.createElement('canvas'); c.width=W; c.height=Hh; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,Hh); x.drawImage(img,0,0,W,Hh); c.toBlob(b=>save(lastPlanName+'.png',b),'image/png'); }; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(lastPlanSvg); };
