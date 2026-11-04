@@ -222,6 +222,7 @@ section.block h3{font-family:var(--display);font-stretch:112%;font-size:15px;fon
     <div class="legend"><span><i style="background:#22A85E"></i>A la venta</span><span><i style="background:#ECEBE6"></i>No disponible / reservada</span><span><i style="background:#E8962E"></i>Seleccionada</span></div>
     <div class="tools">
       <div class="seg" id="modeSeg" role="group" aria-label="Vista"><button data-m="3d" aria-pressed="true">3D</button><button data-m="plano" aria-pressed="false">Plano</button><button data-m="alzado" aria-pressed="false">Alzados</button></div>
+      <div class="seg" id="dormSeg" role="group" aria-label="Dormitorios"><button data-d="" aria-pressed="true">Todos</button><button data-d="2" aria-pressed="false">2 dorm</button><button data-d="3" aria-pressed="false">3 dorm</button></div>
       <div class="seg" id="showSeg" role="group" aria-label="Color"><button data-s="libres" aria-pressed="true">Ver libres</button><button data-s="fachada" aria-pressed="false">Solo fachada</button></div>
       <div class="levels" id="levels" role="group" aria-label="Planta"></div>
       <div class="seg v" id="elevSeg" role="group" aria-label="Fachada" hidden></div>
@@ -653,6 +654,7 @@ function renderLevels(){
 }
 levelsEl.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; level=+b.dataset.f; renderLevels(); refreshStage(); });
 $('modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setMode(b.dataset.m); });
+$('dormSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; F.dorm = b.dataset.d; refresh(); });
 $('showSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; show=b.dataset.s; [...$('showSeg').children].forEach(x=>x.setAttribute('aria-pressed',x===b)); refreshStage(); });
 const EKEYS=['A2','A3','A1','A4'];
 $('elevSeg').innerHTML = EKEYS.map(k=>`<button data-k="${k}">${D.elev[k].name}</button>`).join('');
@@ -1017,6 +1019,7 @@ $('play').onclick=()=>{ if(playing){ clearInterval(playing); playing=null; $('pl
 
 // ---------- refresh ----------
 function refresh(){
+  [...$('dormSeg').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.d===F.dorm));
   const free = UNITS.filter(isFree).length; $('tallyN').textContent = free; $('tally').querySelector('span:last-child').textContent = `libres de ${UNITS.length}`;
   renderPanel(); refreshStage();
 }
