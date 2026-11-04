@@ -5,10 +5,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: same system as Lubens Farnesio — full-height 3D stage with floating dark controls and a sun dock, 440px sheet panel on the right */
-:root{--paper:#F1F2EF;--sheet:#FBFBF9;--ink:#1C2426;--ink-2:#56605F;--ink-3:#8C9593;--rule:#DADDD8;--oak:#B57D45;--oak-soft:#EBD9C2;--free:#2E8A58;--free-soft:#D7EBDD;--taken:#9AA2A2;--sun:#E8962E;--sun-soft:#FBE7C9;--tag:#1C3557;--up:#A9473C;--down:#2E6F96;
+:root{--paper:#F1F2EF;--sheet:#FBFBF9;--ink:#1C2426;--ink-2:#56605F;--ink-3:#8C9593;--rule:#DADDD8;--oak:#B57D45;--oak-soft:#EBD9C2;--free:#2E8A58;--free-soft:#D7EBDD;--d2:#0088FF;--d2-soft:#DCEEFF;--d3:#10B981;--d3-soft:#D1FAE5;--taken:#9AA2A2;--sun:#E8962E;--sun-soft:#FBE7C9;--tag:#1C3557;--up:#A9473C;--down:#2E6F96;
 --display:"Archivo","Arial Narrow",Arial,sans-serif;--body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;--panel-w:440px}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#111617;--sheet:#171D1E;--ink:#E5E8E5;--ink-2:#A8B0AE;--ink-3:#6F7977;--rule:#2A3233;--oak:#D39A5E;--oak-soft:#3A2E22;--free:#5CC489;--free-soft:#1C3527;--taken:#69726F;--sun:#F2A84A;--sun-soft:#3B2C17;--tag:#2B4D7A;--up:#E07A6E;--down:#6FB2DA;color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#111617;--sheet:#171D1E;--ink:#E5E8E5;--ink-2:#A8B0AE;--ink-3:#6F7977;--rule:#2A3233;--oak:#D39A5E;--oak-soft:#3A2E22;--free:#5CC489;--free-soft:#1C3527;--taken:#69726F;--sun:#F2A84A;--sun-soft:#3B2C17;--tag:#2B4D7A;--up:#E07A6E;--down:#6FB2DA;color-scheme:dark}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#111617;--sheet:#171D1E;--ink:#E5E8E5;--ink-2:#A8B0AE;--ink-3:#6F7977;--rule:#2A3233;--oak:#D39A5E;--oak-soft:#3A2E22;--free:#5CC489;--free-soft:#1C3527;--d2:#38BDF8;--d2-soft:#0C2E4E;--d3:#34D399;--d3-soft:#064E3B;--taken:#69726F;--sun:#F2A84A;--sun-soft:#3B2C17;--tag:#2B4D7A;--up:#E07A6E;--down:#6FB2DA;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#111617;--sheet:#171D1E;--ink:#E5E8E5;--ink-2:#A8B0AE;--ink-3:#6F7977;--rule:#2A3233;--oak:#D39A5E;--oak-soft:#3A2E22;--free:#5CC489;--free-soft:#1C3527;--d2:#38BDF8;--d2-soft:#0C2E4E;--d3:#34D399;--d3-soft:#064E3B;--taken:#69726F;--sun:#F2A84A;--sun-soft:#3B2C17;--tag:#2B4D7A;--up:#E07A6E;--down:#6FB2DA;color-scheme:dark}
 *,::before,::after{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;overflow:hidden;margin:0}
@@ -76,6 +76,8 @@ h2{font-family:var(--display);font-stretch:118%;font-weight:750;font-size:22px;m
 .avrow{display:grid;gap:3px}
 .cell{height:22px;border-radius:4px;border:0;font:600 11px var(--mono);cursor:pointer;padding:0;color:var(--ink-3);background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule);min-width:0}
 .cell.LIBRE{background:#22A85E;color:#fff;box-shadow:none}
+.cell.LIBRE.d2{background:var(--d2)}
+.cell.LIBRE.d3{background:var(--d3)}
 .cell.off{opacity:.25}
 .cell:hover,.cell.sel{outline:2px solid var(--sun);outline-offset:1px}
 .avlegend{display:flex;gap:14px;font-size:11.5px;color:var(--ink-2);margin-top:8px;flex-wrap:wrap}
@@ -218,7 +220,7 @@ section.block h3{font-family:var(--display);font-stretch:112%;font-size:15px;fon
     <div class="scrim"></div>
     <div class="brand"><h1>LUBENS</h1><div class="sub">Portales 9 a 16</div><p>A la venta: portales 9 a 12 · 70 viviendas disponibles · Valladolid</p></div>
     <button class="tally" id="tally" title="Ver solo las libres"><span class="dot"></span><b id="tallyN">140</b><span>libres de 140</span></button>
-    <div class="legend"><span><i style="background:#22A85E"></i>A la venta</span><span><i style="background:#ECEBE6"></i>No disponible / reservada</span><span><i style="background:#E8962E"></i>Seleccionada</span></div>
+    <div class="legend"><span><i style="background:#0088FF"></i>2 dorm</span><span><i style="background:#10B981"></i>3 dorm</span><span><i style="background:#ECEBE6"></i>No disponible / reservada</span><span><i style="background:#E8962E"></i>Seleccionada</span></div>
     <div class="tools">
       <div class="seg" id="modeSeg" role="group" aria-label="Vista"><button data-m="3d" aria-pressed="true">3D</button><button data-m="plano" aria-pressed="false">Plano</button><button data-m="alzado" aria-pressed="false">Alzados</button></div>
       <div class="seg" id="dormSeg" role="group" aria-label="Dormitorios"><button data-d="" aria-pressed="true">Todos</button><button data-d="2" aria-pressed="false">2 dorm</button><button data-d="3" aria-pressed="false">3 dorm</button></div>
@@ -289,6 +291,10 @@ const st = id => {
   return 'disponible';
 };
 const isFree = u => st(u.id)==='disponible';
+const dormColor = d => +d===2 ? '#0088FF' : '#10B981';
+const dormColorHex = d => +d===2 ? 0x0088FF : 0x10B981;
+const dormSoftVar = d => +d===2 ? 'var(--d2-soft)' : 'var(--d3-soft)';
+const dormVar = d => +d===2 ? 'var(--d2)' : 'var(--d3)';
 const priceOf = u => (EST[u.id] && EST[u.id].precio) ? EST[u.id].precio : u.list;
 
 // ---------- geometry ----------
@@ -366,12 +372,12 @@ function cellsHtml(){
     const letters = p => [...new Set(D.tipo.filter(t=>t.portal===p).map(t=>t.letter))].sort();
     const cols = ps.map(p=>letters(p).length+0.4+'fr').join(' ');
     return `<div class="avgrid" style="grid-template-columns:auto ${cols}"><div class="lv">${[5,4,3,2,1].map(f=>`<span>${FNAME[f]}</span>`).join('')}</div>` +
-      ps.map(p=>`<div class="avcol"><div class="ph">Portal ${+p}</div><div class="avrows">${[5,4,3,2,1].map(f=>`<div class="avrow" style="grid-template-columns:repeat(${letters(p).length},minmax(0,1fr))">${letters(p).map(l=>{ const u=byId[`${+p}-${f}${l}`]; return `<button class="cell ${isFree(u)?'LIBRE':''} ${filtersOn()&&!passes(u)?'off':''} ${u.id===selId?'sel':''}" data-id="${u.id}" title="${u.id} · ${u.tipo} · ${SLABEL[st(u.id)].toLowerCase()}">${l}</button>`; }).join('')}</div>`).join('')}</div></div>`).join('') + `</div>`;
+      ps.map(p=>`<div class="avcol"><div class="ph">Portal ${+p}</div><div class="avrows">${[5,4,3,2,1].map(f=>`<div class="avrow" style="grid-template-columns:repeat(${letters(p).length},minmax(0,1fr))">${letters(p).map(l=>{ const u=byId[`${+p}-${f}${l}`]; return `<button class="cell ${isFree(u)?('LIBRE d'+u.dorm):''} ${filtersOn()&&!passes(u)?'off':''} ${u.id===selId?'sel':''}" data-id="${u.id}" title="${u.id} · ${u.tipo} · ${SLABEL[st(u.id)].toLowerCase()}">${l}</button>`; }).join('')}</div>`).join('')}</div></div>`).join('') + `</div>`;
   }).join('');
 }
 function rowHtml(u){
   const p = priceOf(u);
-  return `<li><button class="row" data-id="${u.id}"><span class="code">${u.id}</span><span class="meta">${u.tipo} · ${fmt(u.util)} m² · ${u.oriOff?u.oriOff.toLowerCase():''}<small>Portal ${+u.portal} · ${FNAME[u.floor]} planta · ${u.pos?u.pos.toLowerCase():''}</small></span><span class="right"><span class="price">${p?eur(p):'A consultar'}</span><br><span class="pill ${sClass(st(u.id))}">${SLABEL[st(u.id)].toLowerCase()}</span></span></button></li>`;
+  return `<li><button class="row" data-id="${u.id}"><span class="code">${u.id}</span><span class="meta">${u.tipo} · ${fmt(u.util)} m² · ${u.oriOff?u.oriOff.toLowerCase():''}<small>Portal ${+u.portal} · ${FNAME[u.floor]} planta · ${u.pos?u.pos.toLowerCase():''}</small></span><span class="right"><span class="price">${p?eur(p):'A consultar'}</span><br><span class="pill ${sClass(st(u.id))}" ${isFree(u)?`style="background:${dormSoftVar(u.dorm)};color:${dormVar(u.dorm)}"`:''}>${SLABEL[st(u.id)].toLowerCase()} · ${u.dorm} dorm</span></span></button></li>`;
 }
 function sortList(list){
   const k = F.sort;
@@ -384,7 +390,7 @@ function renderHome(){
   <div class="pad"><div class="eyebrow">Encuentra tu vivienda</div><h2>Elige en el edificio o filtra aquí</h2>
     <div class="eyebrow" style="margin-top:16px">Disponibilidad por planta</div>
     <div class="avwrap">${cellsHtml()}</div>
-    <div class="avlegend"><span><i style="background:#22A85E"></i>A la venta</span><span><i style="background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule)"></i>No disponible / reservada</span><span>Pulsa una casilla para ver la vivienda</span></div>
+    <div class="avlegend"><span><i style="background:var(--d2)"></i>2 dorm</span><span><i style="background:var(--d3)"></i>3 dorm</span><span><i style="background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule)"></i>No disponible / reservada</span><span>Pulsa una casilla para ver la vivienda</span></div>
   </div>
   <div class="pad" style="padding-top:0"><div class="find2">
     <div class="f2head"><div><div class="eyebrow">Asistente de búsqueda</div><b>¿Cuál es tu vivienda?</b><p>Cuéntanos qué necesitas y ordenamos las ${UNITS.filter(isFree).length} viviendas libres por afinidad.</p></div><button class="f2go" id="quizGo">Empezar</button></div>
@@ -674,7 +680,7 @@ function renderFlatPlan(){
   const f = level||1, us = UNITS.filter(u=>u.floor===f);
   let s = `<path d="${PATHS.fur}" stroke="var(--rule)" stroke-width="3" fill="none"/>`;
   for(const u of us){ const sel=u.id===selId, fr=isFree(u), dim=filtersOn()&&!passes(u);
-    s += `<path class="pu" data-id="${u.id}" d="${shapeD(foot(u))}" fill="${sel?'var(--sun-soft)':fr?'var(--free-soft)':'var(--paper)'}" fill-opacity="${dim?.35:1}" stroke="${sel?'var(--sun)':'var(--sheet)'}" stroke-width="${sel?30:14}" fill-rule="evenodd" style="cursor:pointer"><title>${u.id} · ${u.tipo} · ${fmt(u.util)} m² · ${SLABEL[st(u.id)].toLowerCase()}</title></path>`; }
+    s += `<path class="pu" data-id="${u.id}" d="${shapeD(foot(u))}" fill="${sel?'var(--sun-soft)':fr?dormSoftVar(u.dorm):'var(--paper)'}" fill-opacity="${dim?.35:1}" stroke="${sel?'var(--sun)':'var(--sheet)'}" stroke-width="${sel?30:14}" fill-rule="evenodd" style="cursor:pointer"><title>${u.id} · ${u.tipo} · ${fmt(u.util)} m² · ${SLABEL[st(u.id)].toLowerCase()}</title></path>`; }
   s += `<path d="${PATHS.carp}" stroke="#8FB0BC" stroke-width="4" fill="none" pointer-events="none"/><path d="${PATHS.walls}" stroke="var(--ink)" stroke-width="7" fill="none" pointer-events="none"/>`;
   for(const u of us) s += `<g class="utag" pointer-events="none"><circle cx="${u.lx}" cy="${u.ly}" r="105"/><text x="${u.lx}" y="${u.ly}" text-anchor="middle" dominant-baseline="central" font-size="125">${u.letter}</text></g>`;
   for(const [p,[x,y]] of Object.entries(D.portals)) s += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono,monospace" font-size="105" fill="var(--ink-3)" pointer-events="none">P${+p}</text>`;
@@ -689,7 +695,7 @@ function renderFlatElev(){
   const list = [...e.units].sort((a,b)=>(b.x1-b.x0)-(a.x1-a.x0));
   for(const eu of list) for(const f of FLOORS){
     const u = UNITS.find(x=>x.k===eu.k && x.floor===f); const y1=eu.yb-e.pitch*(f-1), y0=y1-e.pitch, x0=eu.x0+3, w=eu.x1-eu.x0-6, h=e.pitch-6, sel=u.id===selId, fr=isFree(u), dim=filtersOn()&&!passes(u);
-    s += `<g class="pu" data-id="${u.id}" style="cursor:pointer"><rect x="${x0}" y="${y0+3}" width="${w}" height="${h}" fill="${sel?'#E8962E':fr?'#22A85E':'#FFFFFF'}" fill-opacity="${dim?.08:sel?.75:fr?.45:.35}" stroke="${sel?'#E8962E':'#FFFFFF'}" stroke-width="${sel?6:2}"><title>${u.id} · ${u.tipo} · ${SLABEL[st(u.id)].toLowerCase()}${priceOf(u)?' · '+eur(priceOf(u)):''}</title></rect>`;
+    s += `<g class="pu" data-id="${u.id}" style="cursor:pointer"><rect x="${x0}" y="${y0+3}" width="${w}" height="${h}" fill="${sel?'#E8962E':fr?dormColor(u.dorm):'#FFFFFF'}" fill-opacity="${dim?.08:sel?.75:fr?.45:.35}" stroke="${sel?'#E8962E':'#FFFFFF'}" stroke-width="${sel?6:2}"><title>${u.id} · ${u.tipo} · ${SLABEL[st(u.id)].toLowerCase()}${priceOf(u)?' · '+eur(priceOf(u)):''}</title></rect>`;
     let vx=eu.x0; for(const o of e.units){ if(o!==eu && (o.x1-o.x0)<(eu.x1-eu.x0) && o.x0<=vx+30 && o.x1>vx) vx=Math.max(vx,o.x1); }
     if(eu.x1-vx>130) s += `<g class="utag" pointer-events="none"><circle cx="${vx+27}" cy="${y0+3+h/2}" r="17" style="stroke-width:3"/><text x="${vx+27}" y="${y0+3+h/2}" text-anchor="middle" dominant-baseline="central" font-size="19">${u.letter}</text></g><text x="${vx+52}" y="${y0+3+h/2}" dominant-baseline="central" font-size="17" font-family="IBM Plex Mono,monospace" fill="#1C2426" paint-order="stroke" stroke="#fff" stroke-width="4" pointer-events="none">${u.id}</text>`;
     s += `</g>`;
@@ -981,7 +987,7 @@ function update3D(){
   three.roof.visible = cut===6;
   for(const m of three.unitMeshes){
     const u=byId[m.userData.id], sel=u.id===selId, fr=isFree(u), dim=filtersOn()&&!passes(u), isCut=(u.floor===cut && cut<6);
-    m.material.color.setHex(sel?0xE8962E:fr?0x22A85E:0xB5B3AA);
+    m.material.color.setHex(sel?0xE8962E:fr?dormColorHex(u.dorm):0xB5B3AA);
     m.material.opacity = isCut ? (sel ? .35 : .14) : sel ? .55 : dim ? .12 : fr ? .32 : .18;
     m.visible = sel || (show==='libres' ? fr : true);
     m.scale.y = isCut ? 0.06 : 1;
@@ -991,7 +997,7 @@ function update3D(){
   if(selId) tagIds.add(selId);
   if(filtersOn() && list.length<=10) list.forEach(u=>tagIds.add(u.id));
   if(cut<6) UNITS.filter(u=>u.floor===cut && isFree(u) && (!filtersOn()||passes(u))).forEach(u=>tagIds.add(u.id));
-  $('tags').innerHTML = [...tagIds].filter(id=>byId[id].floor<=cut).map(id=>{ const u=byId[id]; unitCenter(u); const p=priceOf(u); return `<button class="tag ${id===selId?'on':''}" data-id="${id}">${id}${p&&isFree(u)?`<small>${Math.round(p/1000)} mil €</small>`:''}</button>`; }).join('');
+  $('tags').innerHTML = [...tagIds].filter(id=>byId[id].floor<=cut).map(id=>{ const u=byId[id]; unitCenter(u); const p=priceOf(u); return `<button class="tag ${id===selId?'on':''}" data-id="${id}" ${isFree(u)&&id!==selId?`style="background:${dormColor(u.dorm)}"`:''}>${id}${p&&isFree(u)?`<small>${Math.round(p/1000)} mil €</small>`:''}</button>`; }).join('');
 }
 $('tags').addEventListener('click', e=>{ const b=e.target.closest('.tag'); if(b) select(b.dataset.id); });
 
